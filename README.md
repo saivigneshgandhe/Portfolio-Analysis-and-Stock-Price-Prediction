@@ -4,7 +4,7 @@ This project aims to optimize portfolio allocation using Modern Portfolio Theory
 
 Project Structure
 Stock_prices_data.zip: Contains historical stock price data for the selected stocks. Essential for calculating returns, performing beta analysis, and training the prediction models.
-Optimal Portfolio Allocation and Stock prediction.R: The primary R script implementing portfolio optimization, beta analysis, and stock price prediction. This script includes functions for:
+Optimal Portfolio Allocation and Stock prediction.R: The primary R script implementing portfolio optimization and stock price prediction. This script includes functions for:
 Data Preprocessing: Cleans and structures the stock price data.
 Portfolio Optimization: Uses MPT to generate an optimized portfolio allocation based on historical returns and risk.
 Machine Learning Prediction: Applies a Random Forest model to forecast stock prices for informed decision-making.
