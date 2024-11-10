@@ -21,6 +21,7 @@ library(writexl)              # For Excel file operations
 library(randomForest)         # For predictive modeling
 library(ggplot2)              # For visualization
 library(forecast)             # For time series forecasting
+library(MASS)                 # For generating random numbers
 
 # --- Global Variables ---
 # Define stock portfolio
@@ -30,17 +31,17 @@ symbols <- c(
   "PHOENIXLTD.NS", "DATAPATTNS.NS", "KEI.NS", "MAZDOCK.NS",
   "JBMA.NS", "KPITTECH.NS"
 )
+start_date <- as.Date("2015-01-01")
+end_date <- Sys.Date()
 
-
-portfolio_stk <- lapply(symbols,function(X){
-  getSymbols(X,from=start_date,to=end_date,auto.assign = FALSE)
+portfolio_stk <- lapply(symbols, function(X) {
+  stock_data <- getSymbols(X, from = start_date, to = end_date, auto.assign = FALSE)
+  Ad(stock_data)
 })
-
-
-portfolio_stk <- na.omit(merge(Ad(HDFCBANK.NS), Ad(RELIANCE.NS), Ad(INFY.NS),Ad(TCS.NS),Ad(ITC.NS),Ad(PERSISTENT.NS),Ad(FEDERALBNK.NS),Ad(TATAPOWER.NS),Ad(PHOENIXLTD.NS),Ad(DATAPATTNS.NS),Ad(KEI.NS),Ad(MAZDOCK.NS),Ad(JBMA.NS),Ad(KPITTECH.NS)))
+portfolio_stk <- Reduce(function(x, y) merge(x, y, all = FALSE), portfolio_stk)
 
 portfolio_stk <- na.omit(portfolio_stk)
-head(portfolio_stk)
+
 
 
 portfolio_stk_df <- as.timeSeries(portfolio_stk)
@@ -60,11 +61,6 @@ head(portfolio_stk_ret_pf)
 mean(portfolio_stk_ret_pf)
 var_covarince <- cov(portfolio_stk_ret_pf)
 
-# Extracting only the 'mean' and 'Sigma' elements
-min_var_return <- as.numeric(getTargetReturn(min_var_portfolio)["mean"])
-min_var_risk <- as.numeric(getTargetRisk(min_var_portfolio)["Sigma"])
-tangency_return <- as.numeric(getTargetReturn(optimum_portfolio)["mean"])
-tangency_risk <- as.numeric(getTargetRisk(optimum_portfolio)["Sigma"])
 
 efficient_pf <- portfolioFrontier(portfolio_stk_ret,`setRiskFreeRate<-`(portfolioSpec(),0.07/252), constraints = 'longOnly')
 
@@ -72,20 +68,24 @@ efficient_pf <- portfolioFrontier(portfolio_stk_ret,`setRiskFreeRate<-`(portfoli
 # Plotting efficient frontier
 plot(efficient_pf, c(1, 2, 3, 5, 7))
 
-#Points for minimum variance and tangency portfolios
-points(min_var_risk, min_var_return, col = "red", pch = 19, cex = 1.5)
-points(tangency_risk, tangency_return, col = "blue", pch = 19, cex = 1.5)
-legend("topright", legend = c("Min Variance", "Tangency Portfolio"),
-       col = c("red", "blue"), pch = 19)
-
-
-
 min_var_portfolio <- minvariancePortfolio(portfolio_stk_ret,portfolioSpec(),constraints='longonly')
 wts_min_portfolio <- getWeights(min_var_portfolio)                              
 wts_min_portfolio
 
 optimum_portfolio <- tangencyPortfolio(portfolio_stk_ret,`setRiskFreeRate<-`(portfolioSpec(), .07/246),constraints='longonly')
 optimum_portfolio
+
+# Extracting only the 'mean' and 'Sigma' elements
+min_var_return <- as.numeric(getTargetReturn(min_var_portfolio)["mean"])
+min_var_risk <- as.numeric(getTargetRisk(min_var_portfolio)["Sigma"])
+tangency_return <- as.numeric(getTargetReturn(optimum_portfolio)["mean"])
+tangency_risk <- as.numeric(getTargetRisk(optimum_portfolio)["Sigma"])
+
+#Points for minimum variance and tangency portfolios
+points(min_var_risk, min_var_return, col = "red", pch = 19, cex = 1.5)
+points(tangency_risk, tangency_return, col = "blue", pch = 19, cex = 1.5)
+legend("topright", legend = c("Min Variance", "Tangency Portfolio"),
+       col = c("red", "blue"), pch = 19)
 
 # Extracting portfolio weights
 weights <- getWeights(optimum_portfolio)
@@ -377,6 +377,7 @@ for (sym in symbols) {
          width = 8, 
          height = 6)
 }
+
 
 
 
